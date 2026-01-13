@@ -50,7 +50,7 @@ void    join_and_execve(char **all_path, char **cmd, char **envp, char *path)
             free (path);
         i++;
     }
-    waitpid(id);
+    wait(&id);
 }
 
 char    *find_path(char **envp)
