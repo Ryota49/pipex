@@ -45,24 +45,33 @@ void	check_existing_command_line(char **argv, char **envp)
 
 void	join_and_execve(char **all_path, char **cmd, char **envp, char *path)
 {
+	int		pipefd[2];
 	char	*tmp;
 	int		i;
 	int		id;
 
+	pipe(pipefd);
 	id = fork();
 	i = 0;
-	while (all_path[i])
+	if (id == 0)
 	{
-		tmp = ft_strjoin(all_path[i], "/");
-		path = ft_strjoin(tmp, cmd[0]);
-		free (tmp);
-		if (id == 0 && (access(path, X_OK) == 0))
-			execve(path, cmd, envp);
-		else
-			free (path);
-		i++;
+		close (pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+		while (all_path[i])
+			{
+				tmp = ft_strjoin(all_path[i], "/");
+				path = ft_strjoin(tmp, cmd[0]);
+				free (tmp);
+				if (access(path, X_OK) == 0)
+					execve(path, cmd, envp);
+				free (path);
+				i++;
+			}
+		perror("execve");
+		exit (1);
 	}
-	wait(&id);
+	close(pipefd[1]);
 }
 
 char	*find_path(char **envp)
